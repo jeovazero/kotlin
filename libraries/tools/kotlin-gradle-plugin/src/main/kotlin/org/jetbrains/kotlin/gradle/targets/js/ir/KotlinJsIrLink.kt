@@ -156,7 +156,7 @@ abstract class KotlinJsIrLink @Inject constructor(
     override fun setupCompilerArgs(args: K2JSCompilerArguments, defaultsOnly: Boolean, ignoreClasspathResolutionErrors: Boolean) {
         when (mode) {
             PRODUCTION -> {
-                kotlinOptions.configureOptions(ENABLE_DCE, GENERATE_D_TS, MINIMIZED_MEMBER_NAMES)
+                kotlinOptions.configureOptions(ENABLE_DCE, GENERATE_D_TS)
             }
             DEVELOPMENT -> {
                 kotlinOptions.configureOptions(GENERATE_D_TS)
