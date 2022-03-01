@@ -879,7 +879,7 @@ TEST(ObjectFactoryTest, CreateObject) {
     testing::Mock::VerifyAndClearExpectations(&allocator);
     EXPECT_THAT(allocSize, testing::Gt<size_t>(type.typeInfo()->instanceSize_));
     EXPECT_THAT(allocAddress, testing::Ne(nullptr));
-    EXPECT_THAT(mm::GetAllocatedHeapSize(object), allocSize);
+    EXPECT_THAT(ObjectFactory::GetAllocatedHeapSize(object), allocSize);
 
     threadQueue.Publish();
 
@@ -915,7 +915,7 @@ TEST(ObjectFactoryTest, CreateObjectArray) {
     testing::Mock::VerifyAndClearExpectations(&allocator);
     EXPECT_THAT(allocSize, testing::Gt<size_t>(-theArrayTypeInfo->instanceSize_ * 3));
     EXPECT_THAT(allocAddress, testing::Ne(nullptr));
-    EXPECT_THAT(mm::GetAllocatedHeapSize(array->obj()), allocSize);
+    EXPECT_THAT(ObjectFactory::GetAllocatedHeapSize(array->obj()), allocSize);
 
     threadQueue.Publish();
 
@@ -951,7 +951,7 @@ TEST(ObjectFactoryTest, CreateCharArray) {
     testing::Mock::VerifyAndClearExpectations(&allocator);
     EXPECT_THAT(allocSize, testing::Gt<size_t>(-theCharArrayTypeInfo->instanceSize_ * 3));
     EXPECT_THAT(allocAddress, testing::Ne(nullptr));
-    EXPECT_THAT(mm::GetAllocatedHeapSize(array->obj()), allocSize);
+    EXPECT_THAT(ObjectFactory::GetAllocatedHeapSize(array->obj()), allocSize);
 
     threadQueue.Publish();
 

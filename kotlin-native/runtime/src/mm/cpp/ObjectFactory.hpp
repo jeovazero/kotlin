@@ -432,6 +432,7 @@ class ObjectFactory : private Pinned {
     using GCObjectData = typename GC::ObjectData;
     using GCThreadData = typename GC::ThreadData;
     using Allocator = typename GC::Allocator;
+public:
 
     struct HeapObjHeader {
         GCObjectData gcData;
@@ -445,7 +446,6 @@ class ObjectFactory : private Pinned {
         alignas(kObjectAlignment) ArrayHeader array;
     };
 
-public:
     using Storage = internal::ObjectFactoryStorage<kObjectAlignment, Allocator>;
 
     class NodeRef {
@@ -469,6 +469,10 @@ public:
         }
 
         NodeRef* operator->() noexcept { return this; }
+
+        HeapObjHeader* AsHeapObjHeader() noexcept {
+            return static_cast<HeapObjHeader*>(node_.Data());
+        }
 
         GCObjectData& GCObjectData() noexcept {
             // `HeapArrayHeader` and `HeapObjHeader` are kept compatible, so the former can
