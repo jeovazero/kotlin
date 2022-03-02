@@ -74,7 +74,7 @@ class JsIrBackendContext(
     val extractedLocalClasses: MutableSet<IrClass> = hashSetOf()
 
     val minimizedNameGenerator: MinimizedNameGenerator =
-        MinimizedNameGenerator(enabled = configuration.getBoolean(JSConfigurationKeys.MINIMIZED_MEMBER_NAMES))
+        MinimizedNameGenerator()
 
     val fieldDataCache = mutableMapOf<IrClass, Map<IrField, String>>()
 

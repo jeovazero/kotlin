@@ -230,11 +230,6 @@ object JsEnvironmentConfigurationDirectives : SimpleDirectivesContainer() {
         applicability = DirectiveApplicability.Global
     )
 
-    val MINIMIZED_MEMBER_NAMES by directive(
-        description = "Generates minimized member names",
-        applicability = DirectiveApplicability.Global
-    )
-
     val RUN_NEW_IR_2_JS by directive(
         description = "",
         applicability = DirectiveApplicability.Global

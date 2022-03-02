@@ -156,7 +156,6 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
         configurationJs.put(CLIConfigurationKeys.ALLOW_KOTLIN_PACKAGE, arguments.allowKotlinPackage)
         configurationJs.put(CLIConfigurationKeys.RENDER_DIAGNOSTIC_INTERNAL_NAME, arguments.renderInternalDiagnosticNames)
         configurationJs.put(JSConfigurationKeys.PROPERTY_LAZY_INITIALIZATION, arguments.irPropertyLazyInitialization)
-        configurationJs.put(JSConfigurationKeys.MINIMIZED_MEMBER_NAMES, arguments.irMinimizedMemberNames)
 
         if (!checkKotlinPackageUsage(environmentForJS.configuration, sourcesFiles)) return ExitCode.COMPILATION_ERROR
 
@@ -292,7 +291,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
 
                 val moduleKind = configurationJs[JSConfigurationKeys.MODULE_KIND]!!
 
-                val translationMode = TranslationMode.fromFlags(false, arguments.irPerModule)
+                val translationMode = TranslationMode.fromFlags(false, arguments.irPerModule, false)
 
                 val compiledModule = generateJsFromAst(
                     moduleName,
@@ -411,7 +410,10 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
                         moduleToName = ir.moduleFragmentToUniqueName
                     )
 
-                    transformer.generateModule(ir.allModules, setOf(TranslationMode.fromFlags(arguments.irDce, arguments.irPerModule)))
+                    transformer.generateModule(
+                        ir.allModules,
+                        setOf(TranslationMode.fromFlags(arguments.irDce, arguments.irPerModule, arguments.irMinimizedMemberNames))
+                    )
                 } else {
                     val transformer = IrModuleToJsTransformer(
                         ir.context,

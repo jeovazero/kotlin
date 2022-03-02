@@ -33,18 +33,30 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
 
-enum class TranslationMode(val dce: Boolean, val perModule: Boolean) {
-    FULL(dce = false, perModule = false),
-    FULL_DCE(dce = true, perModule = false),
-    PER_MODULE(dce = false, perModule = true),
-    PER_MODULE_DCE(dce = true, perModule = true);
+enum class TranslationMode(
+    val dce: Boolean,
+    val perModule: Boolean,
+    val minimizedMemberNames: Boolean,
+) {
+    FULL(dce = false, perModule = false, minimizedMemberNames = false),
+    FULL_DCE(dce = true, perModule = false, minimizedMemberNames = false),
+    FULL_DCE_MINIMIZED_NAMES(dce = true, perModule = false, minimizedMemberNames = true),
+    PER_MODULE(dce = false, perModule = true, minimizedMemberNames = false),
+    PER_MODULE_DCE(dce = true, perModule = true, minimizedMemberNames = false),
+    PER_MODULE_DCE_MINIMIZED_NAMES(dce = true, perModule = true, minimizedMemberNames = true);
 
     companion object {
-        fun fromFlags(dce: Boolean, perModule: Boolean): TranslationMode {
+        fun fromFlags(dce: Boolean, perModule: Boolean, minimizedMemberNames: Boolean): TranslationMode {
             return if (perModule) {
-                if (dce) PER_MODULE_DCE else PER_MODULE
+                if (dce) {
+                    if (minimizedMemberNames) PER_MODULE_DCE_MINIMIZED_NAMES
+                    else PER_MODULE_DCE_MINIMIZED_NAMES
+                } else PER_MODULE
             } else {
-                if (dce) FULL_DCE else FULL
+                if (dce) {
+                    if (minimizedMemberNames) FULL_DCE_MINIMIZED_NAMES
+                    else FULL_DCE_MINIMIZED_NAMES
+                } else FULL
             }
         }
     }
@@ -91,7 +103,7 @@ class IrModuleToJsTransformerTmp(
         val result = EnumMap<TranslationMode, CompilationOutputs>(TranslationMode::class.java)
 
         modes.filter { !it.dce }.forEach {
-            result[it] = compilationOutput(it.perModule, minimizedMemberNames = false)
+            result[it] = compilationOutput(it.perModule, it.minimizedMemberNames)
         }
 
         if (modes.any { it.dce }) {
@@ -99,7 +111,7 @@ class IrModuleToJsTransformerTmp(
         }
 
         modes.filter { it.dce }.forEach {
-            result[it] = compilationOutput(it.perModule, minimizedMemberNames = true)
+            result[it] = compilationOutput(it.perModule, it.minimizedMemberNames)
         }
 
         return CompilerResult(result, dts)

@@ -79,7 +79,6 @@ class JsIrBackendFacade(
         val splitPerFile = JsEnvironmentConfigurationDirectives.SPLIT_PER_FILE in module.directives
         val perModule = JsEnvironmentConfigurationDirectives.PER_MODULE in module.directives
         val runNewIr2Js = JsEnvironmentConfigurationDirectives.RUN_NEW_IR_2_JS in module.directives
-        val minimizedMemberNames = JsEnvironmentConfigurationDirectives.MINIMIZED_MEMBER_NAMES in module.directives
 
         val granularity = when {
             !firstTimeCompilation -> JsGenerationGranularity.WHOLE_PROGRAM
@@ -161,7 +160,7 @@ class JsIrBackendFacade(
         val perModuleOnly = JsEnvironmentConfigurationDirectives.SPLIT_PER_MODULE in module.directives
 
         val outputFile = File(JsEnvironmentConfigurator.getJsModuleArtifactPath(testServices, module.name, TranslationMode.FULL) + ".js")
-        val dceOutputFile = File(JsEnvironmentConfigurator.getJsModuleArtifactPath(testServices, module.name, TranslationMode.FULL_DCE) + ".js")
+        val dceOutputFile = File(JsEnvironmentConfigurator.getJsModuleArtifactPath(testServices, module.name, TranslationMode.FULL_DCE_MINIMIZED_NAMES) + ".js")
         if (!esModules) {
             if (runNewIr2Js) {
                 val transformer = IrModuleToJsTransformerTmp(
@@ -173,7 +172,10 @@ class JsIrBackendFacade(
                 // If runIrDce then include DCE results
                 // If perModuleOnly then skip whole program
                 // (it.dce => runIrDce) && (perModuleOnly => it.perModule)
-                val translationModes = TranslationMode.values().filter { (!it.dce || runIrDce) && (!perModuleOnly || it.perModule) }.toSet()
+                val translationModes = TranslationMode.values()
+                    .filter { (!it.dce || runIrDce) && (!perModuleOnly || it.perModule) }
+                    .filter { it.dce == it.minimizedMemberNames }
+                    .toSet()
                 return BinaryArtifacts.Js.JsIrArtifact(outputFile, transformer.generateModule(loweredIr.allModules, translationModes)).dump(module)
             } else {
                 val transformer = IrModuleToJsTransformer(
