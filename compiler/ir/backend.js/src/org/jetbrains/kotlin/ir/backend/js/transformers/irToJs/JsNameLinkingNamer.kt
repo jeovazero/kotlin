@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.utils.DFS
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-class JsNameLinkingNamer(private val context: JsIrBackendContext) : IrNamerBase() {
+class JsNameLinkingNamer(private val context: JsIrBackendContext, private val minimizedMemberNames: Boolean) : IrNamerBase() {
 
     val nameMap = mutableMapOf<IrDeclaration, JsName>()
 
@@ -84,7 +84,7 @@ class JsNameLinkingNamer(private val context: JsIrBackendContext) : IrNamerBase(
     override fun getNameForMemberFunction(function: IrSimpleFunction): JsName {
         require(function.dispatchReceiverParameter != null)
         val signature = jsFunctionSignature(function, context)
-        val result = if (!function.hasStableJsName(context) && context.minimizedNameGenerator.enabled) {
+        val result = if (!function.hasStableJsName(context) && minimizedMemberNames) {
             context.minimizedNameGenerator.nameBySignature(signature)
         } else signature
         return result.toJsName()
@@ -112,7 +112,7 @@ class JsNameLinkingNamer(private val context: JsIrBackendContext) : IrNamerBase(
                 it.declarations.forEach {
                     when {
                         it is IrField -> {
-                            val safeName = if (context.minimizedNameGenerator.enabled) {
+                            val safeName = if (minimizedMemberNames) {
                                 context.minimizedNameGenerator.generateNextName()
                             } else it.safeName()
                             val suffix = nameCnt.getOrDefault(safeName, 0) + 1

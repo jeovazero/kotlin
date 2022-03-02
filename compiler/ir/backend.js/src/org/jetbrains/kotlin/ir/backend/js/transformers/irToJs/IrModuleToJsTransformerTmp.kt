@@ -78,11 +78,11 @@ class IrModuleToJsTransformerTmp(
             module.files.forEach { StaticMembersLowering(backendContext).lower(it) }
         }
 
-        fun compilationOutput(multiModule: Boolean) = generateWrappedModuleBody(
+        fun compilationOutput(multiModule: Boolean, minimizedMemberNames: Boolean) = generateWrappedModuleBody(
             multiModule,
             mainModuleName,
             moduleKind,
-            generateProgramFragments(modules, exportData),
+            generateProgramFragments(modules, exportData, minimizedMemberNames),
             SourceMapsInfo.from(backendContext.configuration),
             relativeRequirePath,
             generateScriptModule,
@@ -91,7 +91,7 @@ class IrModuleToJsTransformerTmp(
         val result = EnumMap<TranslationMode, CompilationOutputs>(TranslationMode::class.java)
 
         modes.filter { !it.dce }.forEach {
-            result[it] = compilationOutput(it.perModule)
+            result[it] = compilationOutput(it.perModule, minimizedMemberNames = false)
         }
 
         if (modes.any { it.dce }) {
@@ -99,7 +99,7 @@ class IrModuleToJsTransformerTmp(
         }
 
         modes.filter { it.dce }.forEach {
-            result[it] = compilationOutput(it.perModule)
+            result[it] = compilationOutput(it.perModule, minimizedMemberNames = true)
         }
 
         return CompilerResult(result, dts)
@@ -123,7 +123,7 @@ class IrModuleToJsTransformerTmp(
         val result = mutableMapOf<String, ByteArray>()
         files.forEach { f ->
             val exports = exportData[f]!! // TODO
-            val fragment = generateProgramFragment(f, exports)
+            val fragment = generateProgramFragment(f, exports, minimizedMemberNames = false)
             val output = ByteArrayOutputStream()
             serializer.serialize(fragment, output)
             val binaryAst = output.toByteArray()
@@ -146,6 +146,7 @@ class IrModuleToJsTransformerTmp(
     private fun generateProgramFragments(
         modules: Iterable<IrModuleFragment>,
         exportData: Map<IrModuleFragment, Map<IrFile, List<ExportedDeclaration>>>,
+        minimizedMemberNames: Boolean
     ): JsIrProgram {
         return JsIrProgram(
             modules.map { m ->
@@ -154,7 +155,7 @@ class IrModuleToJsTransformerTmp(
                     m.externalModuleName(),
                     m.files.map {
                         val exports = exportData[m]!![it]!!
-                        generateProgramFragment(it, exports)
+                        generateProgramFragment(it, exports, minimizedMemberNames)
                     },
                 )
             }
@@ -164,8 +165,8 @@ class IrModuleToJsTransformerTmp(
     private val generateFilePaths = backendContext.configuration.getBoolean(JSConfigurationKeys.GENERATE_COMMENTS_WITH_FILE_PATH)
     private val pathPrefixMap = backendContext.configuration.getMap(JSConfigurationKeys.FILE_PATHS_PREFIX_MAP)
 
-    private fun generateProgramFragment(file: IrFile, exports: List<ExportedDeclaration>): JsIrProgramFragment {
-        val nameGenerator = JsNameLinkingNamer(backendContext)
+    private fun generateProgramFragment(file: IrFile, exports: List<ExportedDeclaration>, minimizedMemberNames: Boolean): JsIrProgramFragment {
+        val nameGenerator = JsNameLinkingNamer(backendContext, minimizedMemberNames)
 
         val globalNameScope = NameTable<IrDeclaration>()
 
