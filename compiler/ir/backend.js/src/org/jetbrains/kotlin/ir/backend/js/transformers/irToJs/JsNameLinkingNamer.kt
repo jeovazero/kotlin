@@ -109,24 +109,34 @@ class JsNameLinkingNamer(private val context: JsIrBackendContext, private val mi
 
             val result = mutableMapOf<IrDeclarationWithName, String>()
 
-            allClasses.reversed().forEach {
-                it.declarations.forEach { declaration ->
-                    when {
-                        declaration is IrFunction && declaration.dispatchReceiverParameter != null -> {
-                            val property = (declaration as? IrSimpleFunction)?.correspondingPropertySymbol?.owner
-                            if (minimizedMemberNames &&
-                                (property?.isExported(context) == true ||
-                                        property?.isEffectivelyExternal() == true)) {
-                                context.minimizedNameGenerator.reserveName(property.name.asString())
+            fun processFun(function: IrFunction) {
+                val signature = jsFunctionSignature(function, context)
+                val safeName = if (minimizedMemberNames && !function.hasStableJsName(context)) {
+                    context.minimizedNameGenerator.nameBySignature(signature).also {
+                        result[function] = it
+                    }
+                } else signature
+                nameCnt[safeName] = 1 // avoid clashes with member functions
+            }
+
+            if (minimizedMemberNames) {
+                allClasses.reversed().forEach {
+                    it.declarations.forEach { declaration ->
+                        when {
+                            declaration is IrFunction && declaration.dispatchReceiverParameter != null -> {
+                                val property = (declaration as? IrSimpleFunction)?.correspondingPropertySymbol?.owner
+                                if (property?.isExported(context) == true || property?.isEffectivelyExternal() == true) {
+                                    context.minimizedNameGenerator.reserveName(property.name.asString())
+                                }
+                                if (declaration.hasStableJsName(context)) {
+                                    val signature = jsFunctionSignature(declaration, context)
+                                    context.minimizedNameGenerator.reserveName(signature)
+                                }
                             }
-                            if (minimizedMemberNames && declaration.hasStableJsName(context)) {
-                                val signature = jsFunctionSignature(declaration, context)
-                                context.minimizedNameGenerator.reserveName(signature)
-                            }
-                        }
-                        declaration is IrProperty -> {
-                            if (declaration.isExported(context)) {
-                                context.minimizedNameGenerator.reserveName(declaration.name.asString())
+                            declaration is IrProperty -> {
+                                if (declaration.isExported(context)) {
+                                    context.minimizedNameGenerator.reserveName(declaration.name.asString())
+                                }
                             }
                         }
                     }
@@ -145,32 +155,11 @@ class JsNameLinkingNamer(private val context: JsIrBackendContext, private val mi
                             result[declaration] = safeName + "_$suffix"
                         }
                         declaration is IrFunction && declaration.dispatchReceiverParameter != null -> {
-                            val signature = jsFunctionSignature(declaration, context)
-                            val safeName = if (minimizedMemberNames && !declaration.hasStableJsName(context)) {
-                                context.minimizedNameGenerator.nameBySignature(signature)
-                            } else signature
-                            nameCnt[safeName] = 1 // avoid clashes with member functions
-                            result[declaration] = safeName
+                            processFun(declaration)
                         }
                         declaration is IrProperty -> {
-                            val getter = declaration.getter
-                            val setter = declaration.setter
-                            getter?.let { declaration ->
-                                val signature = jsFunctionSignature(declaration, context)
-                                val safeName = if (!declaration.hasStableJsName(context) && minimizedMemberNames) {
-                                    context.minimizedNameGenerator.nameBySignature(signature)
-                                } else signature
-                                nameCnt[safeName] = 1 // avoid clashes with member functions
-                                result[declaration] = safeName
-                            }
-                            setter?.let { declaration ->
-                                val signature = jsFunctionSignature(declaration, context)
-                                val safeName = if (!declaration.hasStableJsName(context) && minimizedMemberNames) {
-                                    context.minimizedNameGenerator.nameBySignature(signature)
-                                } else signature
-                                nameCnt[safeName] = 1 // avoid clashes with member functions
-                                result[declaration] = safeName
-                            }
+                            declaration.getter?.let { processFun(it) }
+                            declaration.setter?.let { processFun(it) }
                         }
                     }
                 }
