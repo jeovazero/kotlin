@@ -103,10 +103,6 @@ class IrModuleToJsTransformerTmp(
         val result = EnumMap<TranslationMode, CompilationOutputs>(TranslationMode::class.java)
 
         modes.filter { !it.dce }.forEach {
-            if (it.minimizedMemberNames) {
-                backendContext.fieldDataCache.clear()
-                backendContext.minimizedNameGenerator.clear()
-            }
             result[it] = compilationOutput(it.perModule, it.minimizedMemberNames)
         }
 
@@ -115,10 +111,6 @@ class IrModuleToJsTransformerTmp(
         }
 
         modes.filter { it.dce }.forEach {
-            if (it.minimizedMemberNames) {
-                backendContext.fieldDataCache.clear()
-                backendContext.minimizedNameGenerator.clear()
-            }
             result[it] = compilationOutput(it.perModule, it.minimizedMemberNames)
         }
 

@@ -27,10 +27,4 @@ class MinimizedNameGenerator {
     fun reserveName(signature: String) {
         reservedNames.add(signature)
     }
-
-    fun clear() {
-        index = 0
-        functionSignatureToName.clear()
-        reservedNames.clear()
-    }
 }
