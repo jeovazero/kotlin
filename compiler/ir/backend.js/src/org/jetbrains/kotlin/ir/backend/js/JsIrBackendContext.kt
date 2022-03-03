@@ -76,7 +76,7 @@ class JsIrBackendContext(
     val minimizedNameGenerator: MinimizedNameGenerator =
         MinimizedNameGenerator()
 
-    val fieldDataCache = mutableMapOf<IrClass, Map<IrDeclarationWithName, String>>()
+    val fieldDataCache = mutableMapOf<IrClass, Map<IrField, String>>()
 
     override val builtIns = module.builtIns
 

@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.ir.backend.js.transformers.irToJs
 
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
-import org.jetbrains.kotlin.ir.backend.js.export.isExported
 import org.jetbrains.kotlin.ir.backend.js.utils.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
@@ -86,7 +85,7 @@ class JsNameLinkingNamer(private val context: JsIrBackendContext, private val mi
         require(function.dispatchReceiverParameter != null)
         val signature = jsFunctionSignature(function, context)
         val result = if (!function.hasStableJsName(context) && minimizedMemberNames) {
-            function.parentAsClass.fieldData()[function]!!
+            context.minimizedNameGenerator.nameBySignature(signature)
         } else signature
         return result.toJsName()
     }
@@ -97,7 +96,7 @@ class JsNameLinkingNamer(private val context: JsIrBackendContext, private val mi
         return JsName(field.parentAsClass.fieldData()[field]!!, false)
     }
 
-    private fun IrClass.fieldData(): Map<IrDeclarationWithName, String> {
+    private fun IrClass.fieldData(): Map<IrField, String> {
         return context.fieldDataCache.getOrPut(this) {
             val nameCnt = mutableMapOf<String, Int>()
 
@@ -107,70 +106,21 @@ class JsNameLinkingNamer(private val context: JsIrBackendContext, private val mi
                 }
             }
 
-            val result = mutableMapOf<IrDeclarationWithName, String>()
+            val result = mutableMapOf<IrField, String>()
 
             allClasses.reversed().forEach {
-                it.declarations.forEach { declaration ->
+                it.declarations.forEach {
                     when {
-                        declaration is IrFunction && declaration.dispatchReceiverParameter != null -> {
-                            val property = (declaration as? IrSimpleFunction)?.correspondingPropertySymbol?.owner
-                            if (minimizedMemberNames &&
-                                (property?.isExported(context) == true ||
-                                        property?.isEffectivelyExternal() == true)) {
-                                context.minimizedNameGenerator.reserveName(property.name.asString())
-                            }
-                            if (minimizedMemberNames && declaration.hasStableJsName(context)) {
-                                val signature = jsFunctionSignature(declaration, context)
-                                context.minimizedNameGenerator.reserveName(signature)
-                            }
-                        }
-                        declaration is IrProperty -> {
-                            if (declaration.isExported(context)) {
-                                context.minimizedNameGenerator.reserveName(declaration.name.asString())
-                            }
-                        }
-                    }
-                }
-            }
-
-            allClasses.reversed().forEach {
-                it.declarations.forEach { declaration: IrDeclaration ->
-                    when {
-                        declaration is IrField -> {
+                        it is IrField -> {
                             val safeName = if (minimizedMemberNames) {
                                 context.minimizedNameGenerator.generateNextName()
-                            } else declaration.safeName()
+                            } else it.safeName()
                             val suffix = nameCnt.getOrDefault(safeName, 0) + 1
                             nameCnt[safeName] = suffix
-                            result[declaration] = safeName + "_$suffix"
+                            result[it] = safeName + "_$suffix"
                         }
-                        declaration is IrFunction && declaration.dispatchReceiverParameter != null -> {
-                            val signature = jsFunctionSignature(declaration, context)
-                            val safeName = if (minimizedMemberNames && !declaration.hasStableJsName(context)) {
-                                context.minimizedNameGenerator.nameBySignature(signature)
-                            } else signature
-                            nameCnt[safeName] = 1 // avoid clashes with member functions
-                            result[declaration] = safeName
-                        }
-                        declaration is IrProperty -> {
-                            val getter = declaration.getter
-                            val setter = declaration.setter
-                            getter?.let { declaration ->
-                                val signature = jsFunctionSignature(declaration, context)
-                                val safeName = if (!declaration.hasStableJsName(context) && minimizedMemberNames) {
-                                    context.minimizedNameGenerator.nameBySignature(signature)
-                                } else signature
-                                nameCnt[safeName] = 1 // avoid clashes with member functions
-                                result[declaration] = safeName
-                            }
-                            setter?.let { declaration ->
-                                val signature = jsFunctionSignature(declaration, context)
-                                val safeName = if (!declaration.hasStableJsName(context) && minimizedMemberNames) {
-                                    context.minimizedNameGenerator.nameBySignature(signature)
-                                } else signature
-                                nameCnt[safeName] = 1 // avoid clashes with member functions
-                                result[declaration] = safeName
-                            }
+                        it is IrFunction && it.dispatchReceiverParameter != null -> {
+                            nameCnt[jsFunctionSignature(it, context)] = 1 // avoid clashes with member functions
                         }
                     }
                 }
