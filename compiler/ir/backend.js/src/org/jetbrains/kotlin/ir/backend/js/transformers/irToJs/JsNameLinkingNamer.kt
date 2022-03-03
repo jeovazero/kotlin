@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir.backend.js.transformers.irToJs
 
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
+import org.jetbrains.kotlin.ir.backend.js.export.isExported
 import org.jetbrains.kotlin.ir.backend.js.utils.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
@@ -84,7 +85,8 @@ class JsNameLinkingNamer(private val context: JsIrBackendContext, private val mi
     override fun getNameForMemberFunction(function: IrSimpleFunction): JsName {
         require(function.dispatchReceiverParameter != null)
         val signature = jsFunctionSignature(function, context)
-        val result = if (!function.hasStableJsName(context) && minimizedMemberNames) {
+        val result = if (minimizedMemberNames && !function.hasStableJsName(context)) {
+            function.parentAsClass.fieldData()
             context.minimizedNameGenerator.nameBySignature(signature)
         } else signature
         return result.toJsName()
@@ -107,6 +109,30 @@ class JsNameLinkingNamer(private val context: JsIrBackendContext, private val mi
             }
 
             val result = mutableMapOf<IrField, String>()
+
+            if (minimizedMemberNames) {
+                allClasses.reversed().forEach {
+                    it.declarations.forEach { declaration ->
+                        when {
+                            declaration is IrFunction && declaration.dispatchReceiverParameter != null -> {
+                                val property = (declaration as? IrSimpleFunction)?.correspondingPropertySymbol?.owner
+                                if (property?.isExported(context) == true || property?.isEffectivelyExternal() == true) {
+                                    context.minimizedNameGenerator.reserveName(property.name.asString())
+                                }
+                                if (declaration.hasStableJsName(context)) {
+                                    val signature = jsFunctionSignature(declaration, context)
+                                    context.minimizedNameGenerator.reserveName(signature)
+                                }
+                            }
+                            declaration is IrProperty -> {
+                                if (declaration.isExported(context)) {
+                                    context.minimizedNameGenerator.reserveName(declaration.name.asString())
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             allClasses.reversed().forEach {
                 it.declarations.forEach {
