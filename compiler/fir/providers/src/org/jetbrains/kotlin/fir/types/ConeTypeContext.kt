@@ -9,8 +9,8 @@ import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.descriptors.ValueClassEnum
-import org.jetbrains.kotlin.descriptors.jvmInlineLoweringMode
+import org.jetbrains.kotlin.descriptors.ValueClassKind
+import org.jetbrains.kotlin.descriptors.valueClassLoweringKind
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.utils.*
@@ -551,18 +551,18 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
     }
 
     override fun TypeConstructorMarker.isInlineClass(): Boolean {
-        val fields = valueClassRepresentationTypeMarkersList() ?: return false
-        return jvmInlineLoweringMode(this@ConeTypeContext, fields) == ValueClassEnum.Inline
+        val fields = getValueClassProperties() ?: return false
+        return valueClassLoweringKind(this@ConeTypeContext, fields) == ValueClassKind.Inline
     }
 
     override fun TypeConstructorMarker.isMultiFieldValueClass(): Boolean {
-        val fields = valueClassRepresentationTypeMarkersList() ?: return false
-        return jvmInlineLoweringMode(this@ConeTypeContext, fields) == ValueClassEnum.MultiField
+        val fields = getValueClassProperties() ?: return false
+        return valueClassLoweringKind(this@ConeTypeContext, fields) == ValueClassKind.MultiField
     }
 
-    override fun TypeConstructorMarker.valueClassRepresentationTypeMarkersList(): List<Pair<Name, SimpleTypeMarker>>? =
-        toFirRegularClass()?.takeIf { it.isInline }?.primaryConstructorIfAny(session)?.fir?.valueParameters
-            ?.map { it.name to (it.returnTypeRef.coneType.asSimpleType() ?: error("Simple type expected")) }
+    override fun TypeConstructorMarker.getValueClassProperties(): List<Pair<Name, SimpleTypeMarker>>? {
+        return toFirRegularClass()?.valueClassRepresentation?.underlyingPropertyNamesToTypes
+    }
 
     override fun TypeConstructorMarker.isInnerClass(): Boolean {
         return toFirRegularClass()?.isInner == true

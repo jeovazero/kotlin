@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.descriptors
 
-import org.jetbrains.kotlin.descriptors.ValueClassEnum.Inline
-import org.jetbrains.kotlin.descriptors.ValueClassEnum.MultiField
+import org.jetbrains.kotlin.descriptors.ValueClassKind.Inline
+import org.jetbrains.kotlin.descriptors.ValueClassKind.MultiField
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 sealed class ValueClassRepresentation<Type : SimpleTypeMarker> {
     abstract val underlyingPropertyNamesToTypes: List<Pair<Name, Type>>
     abstract fun containsPropertyWithName(name: Name): Boolean
-    abstract fun propertyTypeByName(name: Name): Type?
+    abstract fun getPropertyTypeByName(name: Name): Type?
 
     fun <Other : SimpleTypeMarker> mapUnderlyingType(transform: (Type) -> Other): ValueClassRepresentation<Other> = when (this) {
         is InlineClassRepresentation -> InlineClassRepresentation(underlyingPropertyName, transform(underlyingType))
@@ -23,15 +23,12 @@ sealed class ValueClassRepresentation<Type : SimpleTypeMarker> {
     }
 }
 
-fun SimpleTypeMarker.valueClassRepresentationTypeMarkersList(context: TypeSystemCommonBackendContext): List<Pair<Name, SimpleTypeMarker>>? =
-    with(context) { this@valueClassRepresentationTypeMarkersList.typeConstructor().valueClassRepresentationTypeMarkersList() }
+enum class ValueClassKind { Inline, MultiField }
 
-enum class ValueClassEnum { Inline, MultiField }
-
-fun <Type : SimpleTypeMarker> jvmInlineLoweringMode(
+fun <Type : SimpleTypeMarker> valueClassLoweringKind(
     context: TypeSystemCommonBackendContext,
     fields: List<Pair<Name, Type>>,
-): ValueClassEnum = when {
+): ValueClassKind = when {
     fields.size > 1 -> MultiField
     fields.isEmpty() -> error("Value classes cannot have 0 fields")
     else -> {
@@ -47,7 +44,7 @@ fun <Type : SimpleTypeMarker> jvmInlineLoweringMode(
 }
 
 fun <Type : SimpleTypeMarker> createValueClassRepresentation(context: TypeSystemCommonBackendContext, fields: List<Pair<Name, Type>>) =
-    when (jvmInlineLoweringMode(context, fields)) {
+    when (valueClassLoweringKind(context, fields)) {
         Inline -> InlineClassRepresentation(fields[0].first, fields[0].second)
         MultiField -> MultiFieldValueClassRepresentation(fields)
     }

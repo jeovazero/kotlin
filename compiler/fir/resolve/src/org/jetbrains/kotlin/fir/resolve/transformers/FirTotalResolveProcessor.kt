@@ -13,7 +13,9 @@ import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirBodyResolveProcessor
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitTypeBodyResolveProcessor
 import org.jetbrains.kotlin.fir.resolve.transformers.contracts.FirContractResolveProcessor
-import org.jetbrains.kotlin.fir.resolve.transformers.plugin.*
+import org.jetbrains.kotlin.fir.resolve.transformers.plugin.FirAnnotationArgumentsResolveProcessor
+import org.jetbrains.kotlin.fir.resolve.transformers.plugin.FirCompanionGenerationProcessor
+import org.jetbrains.kotlin.fir.resolve.transformers.plugin.FirCompilerRequiredAnnotationsResolveProcessor
 
 class FirTotalResolveProcessor(session: FirSession) {
     val scopeSession: ScopeSession = ScopeSession()
