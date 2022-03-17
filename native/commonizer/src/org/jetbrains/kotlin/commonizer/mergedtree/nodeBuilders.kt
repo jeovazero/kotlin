@@ -60,7 +60,7 @@ internal fun buildPropertyNode(
     size = size,
     nodeRelationship = nodeRelationship,
     commonizerProducer = {
-        PropertyCommonizer(FunctionOrPropertyBaseCommonizer(classifiers, settings, TypeCommonizer(classifiers, settings)))
+        PropertyCommonizer(FunctionOrPropertyBaseCommonizer(classifiers, TypeCommonizer(classifiers, settings), settings = settings))
     },
     nodeProducer = ::CirPropertyNode
 )
@@ -77,7 +77,7 @@ internal fun buildFunctionNode(
     nodeRelationship = nodeRelationship,
     commonizerProducer = {
         val typeCommonizer = TypeCommonizer(classifiers, settings)
-        FunctionCommonizer(typeCommonizer, FunctionOrPropertyBaseCommonizer(classifiers, settings, typeCommonizer)).asCommonizer()
+        FunctionCommonizer(typeCommonizer, FunctionOrPropertyBaseCommonizer(classifiers, typeCommonizer, settings = settings)).asCommonizer()
     },
     nodeProducer = ::CirFunctionNode
 )
@@ -130,7 +130,7 @@ internal fun buildTypeAliasNode(
     storageManager = storageManager,
     size = size,
     nodeRelationship = null,
-    commonizerProducer = { TypeAliasCommonizer(TypeCommonizer(classifiers, settings), classifiers, settings = settings).asCommonizer() },
+    commonizerProducer = { TypeAliasCommonizer(classifiers, TypeCommonizer(classifiers, settings), settings = settings).asCommonizer() },
     recursionMarker = CirTypeAliasRecursionMarker,
     nodeProducer = { targetDeclarations, commonDeclaration ->
         CirTypeAliasNode(typeAliasId, targetDeclarations, commonDeclaration).also {

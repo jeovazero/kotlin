@@ -12,62 +12,16 @@ import org.jetbrains.kotlin.commonizer.allLeaves
 import org.jetbrains.kotlin.commonizer.cir.*
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
-internal fun <T : CirHasAnnotations> createUnsafeNumberAnnotationIfNecessary(
-    targets: List<CommonizerTarget>,
-    settings: CommonizerSettings,
-    values: List<T>,
-    getTypeIdFromDeclarationForCheck: (declaration: T) -> CirEntityId?,
-): CirAnnotation? {
-    val isOptimisticCommonizationEnabled = settings.getSetting(OptimisticNumberCommonizationEnabledKey)
+typealias RenderedType = String
 
-    if (!isOptimisticCommonizationEnabled)
-        return null
-
-    val typeIds = values.map { annotated -> getTypeIdFromDeclarationForCheck(annotated) }
-
-    // All typealias have to be potentially substitutable (aka have to be some kind of number type)
-    if (!typeIds.all { it != null && OptimisticNumbersTypeCommonizer.isOptimisticallySubstitutable(it) }) {
-        return null
-    }
-
-    return createUnsafeNumberAnnotation(targets, values, getTypeIdFromDeclarationForCheck)
-}
-
-private fun <T : CirHasAnnotations> createUnsafeNumberAnnotation(
-    targets: List<CommonizerTarget>,
-    values: List<T>,
-    getTypeIdFromDeclaration: (declaration: T) -> CirEntityId?,
-): CirAnnotation? {
-    val actualPlatformTypes = mutableMapOf<String, CirEntityId>()
-
-    values.forEachIndexed forEach@{ index, annotated ->
-        val existingAnnotation = annotated.annotations.firstIsInstanceOrNull<UnsafeNumberAnnotation>()
-        if (existingAnnotation != null) {
-            actualPlatformTypes.putAll(existingAnnotation.actualPlatformTypes)
-            return@forEach
-        }
-
-        targets[index].allLeaves().forEach { target ->
-            actualPlatformTypes[target.name] = getTypeIdFromDeclaration(annotated)
-                ?: throw IllegalStateException("Expect class or type alias type")
-        }
-    }
-
-    if (actualPlatformTypes.values.distinct().size > 1) {
-        return UnsafeNumberAnnotation(actualPlatformTypes)
-    }
-
-    return null
-}
-
-private class UnsafeNumberAnnotation(val actualPlatformTypes: Map<String, CirEntityId>) : CirAnnotation {
+private class UnsafeNumberAnnotation(val actualPlatformTypes: Map<String, RenderedType>) : CirAnnotation {
     override val type: CirClassType = UnsafeNumberAnnotation.type
     override val annotationValueArguments: Map<CirName, CirAnnotation> = emptyMap()
 
     override val constantValueArguments: Map<CirName, CirConstantValue> = mapOf(
         CirName.create("actualPlatformTypes") to CirConstantValue.ArrayValue(
             actualPlatformTypes.toSortedMap().map { (platform, type) ->
-                CirConstantValue.StringValue("$platform: ${type.toQualifiedNameString()}")
+                CirConstantValue.StringValue("$platform: $type")
             }
         )
     )
@@ -80,4 +34,83 @@ private class UnsafeNumberAnnotation(val actualPlatformTypes: Map<String, CirEnt
             isMarkedNullable = false
         )
     }
+}
+
+abstract class UnsafeNumberAnnotationCreator<T : CirHasAnnotations>(
+    private val settings: CommonizerSettings,
+) {
+    protected abstract fun getType(declaration: T): CirType
+
+    fun createAnnotationIfNecessary(
+        targets: List<CommonizerTarget>,
+        inputDeclarations: List<T>,
+        resultingType: CirType?
+    ): CirAnnotation? {
+        if (!shouldCreateAnnotation(resultingType, inputDeclarations))
+            return null
+
+        val inputTypes = inputDeclarations.map { declaration -> getType(declaration) }
+
+        val actualPlatformTypes = mutableMapOf<String, RenderedType>()
+
+        inputTypes.zip(targets).forEach { (cirClassType, target) ->
+            target.allLeaves().forEach { leafCommonizerTarget ->
+                actualPlatformTypes[leafCommonizerTarget.name] = CirTypeRendererForUnsafeNumberAnnotation.renderType(cirClassType)
+            }
+        }
+
+        inputDeclarations.forEach { annotated ->
+            val existingAnnotation = annotated.annotations.firstIsInstanceOrNull<UnsafeNumberAnnotation>()
+            if (existingAnnotation != null) {
+                actualPlatformTypes.putAll(existingAnnotation.actualPlatformTypes)
+            }
+        }
+
+        if (actualPlatformTypes.values.distinct().size > 1) {
+            return UnsafeNumberAnnotation(actualPlatformTypes)
+        }
+
+        return null
+    }
+
+    private fun shouldCreateAnnotation(
+        commonizedType: CirType?,
+        inputDeclarations: List<T>,
+    ): Boolean {
+        if (!settings.getSetting(OptimisticNumberCommonizationEnabledKey))
+            return false
+
+        val annotatedInputDeclarationPresent = inputDeclarations.any { declaration ->
+            declaration.annotations.any { annotation -> annotation is UnsafeNumberAnnotation }
+        }
+
+        if (annotatedInputDeclarationPresent)
+            return true
+
+        if (commonizedType == null)
+            return false
+
+        var isMarkedTypeFound = false
+
+        commonizedType.accept(object : CirTypeVisitorUnit() {
+            override fun visit(classType: CirClassType, data: Unit) {
+                classType.getAttachment<OptimisticNumbersTypeCommonizer.OptimisticCommonizationMarker>()?.let { isMarkedTypeFound = true }
+                    ?: super.visit(classType, data)
+            }
+        })
+
+        return isMarkedTypeFound
+    }
+}
+
+class UnsafeNumberAnnotationCreatorForTypeAlias(
+    settings: CommonizerSettings
+) : UnsafeNumberAnnotationCreator<CirTypeAlias>(settings) {
+    override fun getType(declaration: CirTypeAlias): CirType = declaration.underlyingType
+}
+
+class UnsafeNumberAnnotationCreatorForFunctionOrProperty(
+    settings: CommonizerSettings
+) : UnsafeNumberAnnotationCreator<CirFunctionOrProperty>(settings) {
+    override fun getType(declaration: CirFunctionOrProperty): CirType = declaration.returnType
 }

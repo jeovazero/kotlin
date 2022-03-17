@@ -14,15 +14,25 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.Kind.DELEGATION
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.Kind.SYNTHESIZED
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibility
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class FunctionOrPropertyBaseCommonizer(
     private val classifiers: CirKnownClassifiers,
-    private val settings: CommonizerSettings,
     private val typeCommonizer: TypeCommonizer,
-    private val extensionReceiverCommonizer: ExtensionReceiverCommonizer = ExtensionReceiverCommonizer(typeCommonizer),
-    private val returnTypeCommonizer: ReturnTypeCommonizer = ReturnTypeCommonizer(typeCommonizer),
+    private val extensionReceiverCommonizer: ExtensionReceiverCommonizer,
+    private val returnTypeCommonizer: ReturnTypeCommonizer,
+    private val unsafeNumberAnnotationCreator: UnsafeNumberAnnotationCreator<CirFunctionOrProperty>,
 ) : NullableContextualSingleInvocationCommonizer<CirFunctionOrProperty, FunctionOrPropertyBaseCommonizer.FunctionOrProperty> {
+
+    constructor(
+        classifiers: CirKnownClassifiers,
+        typeCommonizer: TypeCommonizer,
+        extensionReceiverCommonizer: ExtensionReceiverCommonizer = ExtensionReceiverCommonizer(typeCommonizer),
+        returnTypeCommonizer: ReturnTypeCommonizer = ReturnTypeCommonizer(typeCommonizer),
+        settings: CommonizerSettings,
+    ) : this(
+        classifiers, typeCommonizer, extensionReceiverCommonizer, returnTypeCommonizer,
+        UnsafeNumberAnnotationCreatorForFunctionOrProperty(settings),
+    )
 
     data class FunctionOrProperty(
         val name: CirName,
@@ -49,11 +59,13 @@ class FunctionOrPropertyBaseCommonizer(
             return null
         }
 
-        val additionalUnsafeNumberAnnotation =
-            createUnsafeNumberAnnotationIfNecessary(
-                classifiers.classifierIndices.targets, settings, values,
-                getTypeIdFromDeclarationForCheck = ::getFunctionOrPropertyReturnTypeId,
-            )
+        val returnType = returnTypeCommonizer(values) ?: return null
+
+        val unsafeNumberAnnotation = unsafeNumberAnnotationCreator.createAnnotationIfNecessary(
+            targets = classifiers.classifierIndices.targets,
+            inputDeclarations = values,
+            resultingType = returnType,
+        )
 
         return FunctionOrProperty(
             name = values.first().name,
@@ -63,17 +75,7 @@ class FunctionOrPropertyBaseCommonizer(
             extensionReceiver = (extensionReceiverCommonizer(values.map { it.extensionReceiver }) ?: return null).receiver,
             returnType = returnTypeCommonizer(values) ?: return null,
             typeParameters = TypeParameterListCommonizer(typeCommonizer).commonize(values.map { it.typeParameters }) ?: return null,
-            additionalAnnotations = listOfNotNull(additionalUnsafeNumberAnnotation)
+            additionalAnnotations = listOfNotNull(unsafeNumberAnnotation)
         )
     }
 }
-
-private fun getFunctionOrPropertyReturnTypeId(functionOrProperty: CirFunctionOrProperty): CirEntityId? {
-    return functionOrProperty.returnType.let { returnType ->
-        when (returnType) {
-            is CirFlexibleType -> returnType.lowerBound.safeAs<CirClassOrTypeAliasType>()?.classifierId
-            else -> returnType.safeAs<CirClassOrTypeAliasType>()?.classifierId
-        }
-    }
-}
-
