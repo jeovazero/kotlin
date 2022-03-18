@@ -609,6 +609,11 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
                 ) {
                     Type componentType = signature.getReturnType();
                     InstructionAdapter iv = new InstructionAdapter(mv);
+
+                    if (originalElement instanceof KtProperty || originalElement instanceof KtParameter) {
+                        markLineNumberForElement(originalElement, iv);
+                    }
+
                     if (!componentType.equals(Type.VOID_TYPE)) {
                         PropertyDescriptor property =
                                 bindingContext.get(BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, descriptorToDeclaration(parameter));

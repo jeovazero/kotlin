@@ -31,37 +31,65 @@ fun box() {
 
 // EXPECTATIONS JVM_IR
 // test.kt:13 invoke: w:int=1:int
-// test.kt:15 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char
+// test.kt:4 component1:
 // EXPECTATIONS JVM
 // test.kt:15 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int
+// test.kt:4 component1:
 
-// EXPECTATIONS
+// EXPECTATIONS JVM
+// test.kt:15 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int
+// test.kt:4 component3:
+// test.kt:15 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int
+// EXPECTATIONS JVM_IR
+// test.kt:13 invoke: w:int=1:int
+// test.kt:4 component3:
+// test.kt:13 invoke: w:int=1:int, x:double=1.0:double
+
+// EXPECTATIONS JVM
 // test.kt:4 <init>: x:double=1.0:double, y:java.lang.String="":java.lang.String, z:char=0:char
+// test.kt:15 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char
+// test.kt:4 component1:
+// EXPECTATIONS JVM_IR
+// test.kt:15 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char
+// test.kt:4 <init>: x:double=1.0:double, y:java.lang.String="":java.lang.String, z:char=0:char
+// test.kt:15 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char
+
+// EXPECTATIONS JVM
+// test.kt:15 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char
+// test.kt:4 component3:
+// EXPECTATIONS JVM_IR
+// test.kt:4 component1:
+// test.kt:15 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char
 
 // EXPECTATIONS JVM
 // test.kt:15 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char
 // test.kt:16 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char
-// EXPECTATIONS JVM_IR
-// test.kt:15 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char
-// test.kt:16 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char
-
-// EXPECTATIONS
 // test.kt:4 <init>: x:double=1.0:double, y:java.lang.String="":java.lang.String, z:char=0:char
-
-// EXPECTATIONS JVM
+// test.kt:16 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char
+// test.kt:4 component2:
+// test.kt:16 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char
+// test.kt:4 component3:
 // test.kt:16 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char
 // test.kt:18 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String, d:char=0:char
-// EXPECTATIONS JVM_IR
-// test.kt:16 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char
-// test.kt:18 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String, d:char=0:char
-
-// EXPECTATIONS
 // test.kt:8 getArrayOfA:
-
-// EXPECTATIONS JVM
+// test.kt:18 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String, d:char=0:char
+// test.kt:4 component2:
 // test.kt:18 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String, d:char=0:char
 // test.kt:22 invoke: $dstr$x$_u24__u24$y:A=A, $noName_1:java.lang.String="":java.lang.String, w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String, d:char=0:char
 // EXPECTATIONS JVM_IR
+// test.kt:4 component3:
+// test.kt:15 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double
+// test.kt:16 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char
+// test.kt:4 <init>: x:double=1.0:double, y:java.lang.String="":java.lang.String, z:char=0:char
+// test.kt:16 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char
+// test.kt:4 component2:
+// test.kt:16 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char
+// test.kt:4 component3:
+// test.kt:16 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String
+// test.kt:18 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String, d:char=0:char
+// test.kt:8 getArrayOfA:
+// test.kt:18 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String, d:char=0:char
+// test.kt:4 component2:
 // test.kt:18 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String, d:char=0:char
 // test.kt:22 invoke: w:int=1:int, x:double=1.0:double, y:char=0:char, a:double=1.0:double, c:char=0:char, _:java.lang.String="":java.lang.String, d:char=0:char
 
