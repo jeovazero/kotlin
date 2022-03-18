@@ -534,6 +534,7 @@ class ExportModelGenerator(
     private fun IrClass.getExportableName(): String {
         val qualifier = (parent as? IrFile)?.getJsQualifier()
         val supQualifier = (parent as? IrClass)?.getExportableName()
+        val name = getJsNameOrKotlinName()
 
         return when {
             qualifier != null -> "$qualifier.$name"
