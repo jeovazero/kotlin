@@ -7,10 +7,7 @@ package org.jetbrains.kotlin.ir.types
 
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.ir.IrBuiltIns
-import org.jetbrains.kotlin.ir.symbols.FqNameEqualityChecker
-import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
-import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
-import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
+import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 
@@ -37,10 +34,13 @@ fun IrType.isSubtypeOf(superType: IrType, typeSystem: IrTypeSystemContext): Bool
 
 fun IrType.isNullable(): Boolean =
     when (this) {
-        is IrDefinitelyNotNullType -> false
         is IrSimpleType -> when (val classifier = classifier) {
-            is IrClassSymbol -> hasQuestionMark
-            is IrTypeParameterSymbol -> hasQuestionMark || classifier.owner.superTypes.any(IrType::isNullable)
+            is IrClassSymbol -> nullability == SimpleTypeNullability.NULLABLE
+            is IrTypeParameterSymbol -> when (nullability) {
+                SimpleTypeNullability.NULLABLE -> true
+                SimpleTypeNullability.NOT_SPECIFIED -> classifier.owner.superTypes.any(IrType::isNullable) // TODO, why any, shouldn't be all?
+                SimpleTypeNullability.DEFINITELY_NOT_NULL -> false
+            }
             else -> error("Unsupported classifier: $classifier")
         }
         is IrDynamicType -> true
@@ -73,9 +73,3 @@ fun IrType.toArrayOrPrimitiveArrayType(irBuiltIns: IrBuiltIns): IrType =
     } else {
         irBuiltIns.arrayClass.typeWith(this)
     }
-
-fun IrType.unwrapDefinitelyNotNullType(): IrType =
-    if (this is IrDefinitelyNotNullType)
-        this.original.unwrapDefinitelyNotNullType()
-    else
-        this

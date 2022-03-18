@@ -26,7 +26,11 @@ fun IrType.asString(): String = when (this) {
     is IrDynamicType -> "dynamic"
     is IrSimpleType ->
         classifier.asString() +
-                (if (hasQuestionMark) "?" else "") +
+                when (nullability) {
+                    SimpleTypeNullability.NULLABLE -> "?"
+                    SimpleTypeNullability.NOT_SPECIFIED -> ""
+                    SimpleTypeNullability.DEFINITELY_NOT_NULL -> if (classifier is IrTypeParameterSymbol) " & Any" else ""
+                } +
                 (arguments.ifNotEmpty {
                     joinToString(separator = ",", prefix = "<", postfix = ">") { it.asString() }
                 } ?: "")

@@ -32,13 +32,25 @@ abstract class IrErrorType(kotlinType: KotlinType?) : IrTypeBase(kotlinType)
 
 abstract class IrDynamicType(kotlinType: KotlinType?) : IrTypeBase(kotlinType), DynamicTypeMarker
 
-abstract class IrDefinitelyNotNullType(kotlinType: KotlinType?) : IrTypeBase(kotlinType), DefinitelyNotNullTypeMarker {
-    abstract val original: IrType
+enum class SimpleTypeNullability {
+    NULLABLE,
+    NOT_SPECIFIED,
+    DEFINITELY_NOT_NULL;
+
+    fun markWith(outer: SimpleTypeNullability) = when (outer) {
+        NULLABLE -> NULLABLE
+        NOT_SPECIFIED -> this
+        DEFINITELY_NOT_NULL -> DEFINITELY_NOT_NULL
+    }
+
+    companion object {
+        fun fromHasQuestionMark(hasQuestionMark: Boolean) = if (hasQuestionMark) NULLABLE else NOT_SPECIFIED
+    }
 }
 
 abstract class IrSimpleType(kotlinType: KotlinType?) : IrTypeBase(kotlinType), SimpleTypeMarker, TypeArgumentListMarker {
     abstract val classifier: IrClassifierSymbol
-    abstract val hasQuestionMark: Boolean
+    abstract val nullability: SimpleTypeNullability
     abstract val arguments: List<IrTypeArgument>
     abstract val abbreviation: IrTypeAbbreviation?
 }

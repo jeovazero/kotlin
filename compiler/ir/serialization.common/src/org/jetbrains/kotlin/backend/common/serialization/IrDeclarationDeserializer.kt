@@ -118,7 +118,7 @@ class IrDeclarationDeserializer(
         return IrSimpleTypeImpl(
             null,
             symbol,
-            proto.hasQuestionMark,
+            SimpleTypeNullability.fromHasQuestionMark(proto.hasQuestionMark),
             arguments,
             annotations,
             if (proto.hasAbbreviation()) deserializeTypeAbbreviation(proto.abbreviation) else null
@@ -144,10 +144,10 @@ class IrDeclarationDeserializer(
         return IrErrorTypeImpl(null, annotations, Variance.INVARIANT)
     }
 
-    private fun deserializeDefinitelyNotNullType(proto: ProtoDefinitelyNotNullType): IrDefinitelyNotNullType {
+    private fun deserializeDefinitelyNotNullType(proto: ProtoDefinitelyNotNullType): IrSimpleType {
         assert(proto.typesCount == 1) { "Only DefinitelyNotNull type is now supported" }
         // TODO support general case of intersection type
-        return IrDefinitelyNotNullTypeImpl(null, deserializeIrType(proto.typesList[0]))
+        return deserializeIrType(proto.typesList[0]).makeNotNull() as IrSimpleType
     }
 
     private fun deserializeIrTypeData(proto: ProtoType): IrType {

@@ -472,7 +472,7 @@ class ExportModelGenerator(
             return ExportedType.ErrorType("NonSimpleType ${type.render()}")
 
         val classifier = type.classifier
-        val isNullable = type.hasQuestionMark
+        val isNullable = type.isNullable()
         val nonNullType = type.makeNotNull() as IrSimpleType
 
         val exportedType = when {

@@ -384,7 +384,7 @@ open class IrFileSerializer(
         val proto = ProtoSimpleType.newBuilder()
             .addAllAnnotation(serializeAnnotations(type.annotations))
             .setClassifier(serializeIrSymbol(type.classifier))
-            .setHasQuestionMark(type.hasQuestionMark)
+            .setHasQuestionMark(type.isMarkedNullable()) // TODO
         type.abbreviation?.let { ta ->
             proto.setAbbreviation(serializeIrTypeAbbreviation(ta))
         }
@@ -413,17 +413,10 @@ open class IrFileSerializer(
         .addAllAnnotation(serializeAnnotations(type.annotations))
         .build()
 
-    private fun serializeDefinitelyNotNullType(type: IrDefinitelyNotNullType): ProtoDefinitelyNotNullType =
-        ProtoDefinitelyNotNullType.newBuilder()
-            .addTypes(serializeIrType(type.original))
-//            .addTypes(serializeIrType(kotlin.Any))
-            .build()
 
     private fun serializeIrTypeData(type: IrType): ProtoType {
         val proto = ProtoType.newBuilder()
         when (type) {
-            is IrDefinitelyNotNullType ->
-                proto.dnn = serializeDefinitelyNotNullType(type)
             is IrSimpleType ->
                 proto.simple = serializeSimpleType(type)
             is IrDynamicType ->
@@ -468,14 +461,18 @@ open class IrFileSerializer(
             var type = this
             return IrTypeKey(
                 kind = when (this) {
-                    is IrDefinitelyNotNullType -> IrTypeKind.DEFINITELY_NOT_NULL.also { type = original }
-                    is IrSimpleType -> IrTypeKind.SIMPLE
+                    is IrSimpleType -> {
+                        if (classifier is IrTypeParameterSymbol && nullability == SimpleTypeNullability.DEFINITELY_NOT_NULL)
+                            IrTypeKind.DEFINITELY_NOT_NULL
+                        else
+                            IrTypeKind.SIMPLE
+                    }
                     is IrDynamicType -> IrTypeKind.DYNAMIC
                     is IrErrorType -> IrTypeKind.ERROR
                     else -> error("Unexpected IrType kind: $this")
                 },
                 classifier = type.classifierOrNull,
-                hasQuestionMark = (type as? IrSimpleType)?.hasQuestionMark,
+                hasQuestionMark = (type as? IrSimpleType)?.isMarkedNullable(), // TODO
                 arguments = (type as? IrSimpleType)?.arguments?.map { it.toIrTypeArgumentKey },
                 annotations = type.annotations,
                 abbreviation = (type as? IrSimpleType)?.abbreviation
