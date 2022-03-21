@@ -403,7 +403,7 @@ object Aggregates : TemplateGroupBase() {
             } builder {
                 inline()
                 specialFor(ArraysOfUnsigned) { inlineOnly() }
-                specialFor(Maps) { if (op == "maxBy" || nullable) inlineOnly() }
+                specialFor(Maps) { if (op == "maxBy" || !legacy) inlineOnly() }
                 typeParam("R : Comparable<R>")
                 returns("T" + "?".ifOrEmpty(nullable))
 
@@ -483,7 +483,7 @@ object Aggregates : TemplateGroupBase() {
                 includeDefault()
                 include(Maps, CharSequences, ArraysOfUnsigned)
             } builder {
-                specialFor(Maps) { if (op == "maxWith" || nullable) inlineOnly() }
+                specialFor(Maps) { if (op == "maxWith" || !legacy) inlineOnly() }
                 returns("T" + "?".ifOrEmpty(nullable))
 
                 if (!nullable || legacy) suppress("CONFLICTING_OVERLOADS")

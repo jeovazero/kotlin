@@ -5288,6 +5288,7 @@ public inline fun <T, R : kotlin.Comparable<R>> kotlin.collections.Iterable<T>.m
 
 @kotlin.SinceKotlin(version = "1.7")
 @kotlin.jvm.JvmName(name = "minByNotEmpty")
+@kotlin.internal.InlineOnly
 public inline fun <K, V, R : kotlin.Comparable<R>> kotlin.collections.Map<out K, V>.minBy(selector: (kotlin.collections.Map.Entry<K, V>) -> R): kotlin.collections.Map.Entry<K, V>
 
 @kotlin.SinceKotlin(version = "1.4")
@@ -6093,7 +6094,8 @@ public fun <T> kotlin.collections.Iterable<T>.minWith(comparator: kotlin.Compara
 
 @kotlin.SinceKotlin(version = "1.7")
 @kotlin.jvm.JvmName(name = "minWithNotEmpty")
-public fun <K, V> kotlin.collections.Map<out K, V>.minWith(comparator: kotlin.Comparator<in kotlin.collections.Map.Entry<K, V>>): kotlin.collections.Map.Entry<K, V>
+@kotlin.internal.InlineOnly
+public inline fun <K, V> kotlin.collections.Map<out K, V>.minWith(comparator: kotlin.Comparator<in kotlin.collections.Map.Entry<K, V>>): kotlin.collections.Map.Entry<K, V>
 
 @kotlin.SinceKotlin(version = "1.4")
 public fun <T> kotlin.Array<out T>.minWithOrNull(comparator: kotlin.Comparator<in T>): T?

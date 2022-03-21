@@ -380,6 +380,7 @@ public inline fun <K, V> Map<out K, V>.maxWithOrNull(comparator: Comparator<in M
  */
 @SinceKotlin("1.7")
 @kotlin.jvm.JvmName("minByNotEmpty")
+@kotlin.internal.InlineOnly
 @Suppress("CONFLICTING_OVERLOADS")
 public inline fun <K, V, R : Comparable<R>> Map<out K, V>.minBy(selector: (Map.Entry<K, V>) -> R): Map.Entry<K, V> {
     return entries.minBy(selector)
@@ -515,8 +516,9 @@ public inline fun <K, V, R> Map<out K, V>.minOfWithOrNull(comparator: Comparator
  */
 @SinceKotlin("1.7")
 @kotlin.jvm.JvmName("minWithNotEmpty")
+@kotlin.internal.InlineOnly
 @Suppress("CONFLICTING_OVERLOADS")
-public fun <K, V> Map<out K, V>.minWith(comparator: Comparator<in Map.Entry<K, V>>): Map.Entry<K, V> {
+public inline fun <K, V> Map<out K, V>.minWith(comparator: Comparator<in Map.Entry<K, V>>): Map.Entry<K, V> {
     return entries.minWith(comparator)
 }
 

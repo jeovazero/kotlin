@@ -34,7 +34,6 @@ public inline fun <K, V> Map<out K, V>.maxWith(comparator: Comparator<in Map.Ent
 
 @Deprecated("Use minByOrNull instead.", ReplaceWith("this.minByOrNull(selector)"))
 @DeprecatedSinceKotlin(warningSince = "1.4", errorSince = "1.5", hiddenSince = "1.6")
-@kotlin.internal.InlineOnly
 @Suppress("CONFLICTING_OVERLOADS")
 public inline fun <K, V, R : Comparable<R>> Map<out K, V>.minBy(selector: (Map.Entry<K, V>) -> R): Map.Entry<K, V>? {
     return minByOrNull(selector)
@@ -42,9 +41,8 @@ public inline fun <K, V, R : Comparable<R>> Map<out K, V>.minBy(selector: (Map.E
 
 @Deprecated("Use minWithOrNull instead.", ReplaceWith("this.minWithOrNull(comparator)"))
 @DeprecatedSinceKotlin(warningSince = "1.4", errorSince = "1.5", hiddenSince = "1.6")
-@kotlin.internal.InlineOnly
 @Suppress("CONFLICTING_OVERLOADS")
-public inline fun <K, V> Map<out K, V>.minWith(comparator: Comparator<in Map.Entry<K, V>>): Map.Entry<K, V>? {
+public fun <K, V> Map<out K, V>.minWith(comparator: Comparator<in Map.Entry<K, V>>): Map.Entry<K, V>? {
     return minWithOrNull(comparator)
 }
 

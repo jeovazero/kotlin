@@ -2558,8 +2558,8 @@ public final class kotlin/collections/MapsKt {
 	public static final fun mapTo (Ljava/util/Map;Ljava/util/Collection;Lkotlin/jvm/functions/Function1;)Ljava/util/Collection;
 	public static final fun mapValues (Ljava/util/Map;Lkotlin/jvm/functions/Function1;)Ljava/util/Map;
 	public static final fun mapValuesTo (Ljava/util/Map;Ljava/util/Map;Lkotlin/jvm/functions/Function1;)Ljava/util/Map;
-	public static final fun minByNotEmpty (Ljava/util/Map;Lkotlin/jvm/functions/Function1;)Ljava/util/Map$Entry;
-	public static final fun minWithNotEmpty (Ljava/util/Map;Ljava/util/Comparator;)Ljava/util/Map$Entry;
+	public static final synthetic fun minBy (Ljava/util/Map;Lkotlin/jvm/functions/Function1;)Ljava/util/Map$Entry;
+	public static final synthetic fun minWith (Ljava/util/Map;Ljava/util/Comparator;)Ljava/util/Map$Entry;
 	public static final fun minus (Ljava/util/Map;Ljava/lang/Iterable;)Ljava/util/Map;
 	public static final fun minus (Ljava/util/Map;Ljava/lang/Object;)Ljava/util/Map;
 	public static final fun minus (Ljava/util/Map;Lkotlin/sequences/Sequence;)Ljava/util/Map;
