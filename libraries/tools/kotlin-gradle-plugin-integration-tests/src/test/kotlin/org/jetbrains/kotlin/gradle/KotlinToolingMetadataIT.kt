@@ -36,7 +36,6 @@ class KotlinToolingMetadataMppIT : BaseGradleIT() {
 
     @Test
     fun `new-mpp-published`() = with(transformProjectWithPluginsDsl("new-mpp-published")) {
-        projectDir.resolve("gradle.properties").appendText("\nkotlin.mpp.enableKotlinToolingMetadataArtifact=true")
 
         build("publish") {
             assertSuccessful()
@@ -108,7 +107,6 @@ class KotlinToolingMetadataMppIT : BaseGradleIT() {
     @Test
     fun `kotlin-js-browser-project`() = with(transformProjectWithPluginsDsl("kotlin-js-browser-project")) {
         assumeFalse("KPM model mapping is not yet supported in single-platform projects", isKpmModelMappingEnabled)
-        projectDir.resolve("gradle.properties").appendText("\nkotlin.mpp.enableKotlinToolingMetadataArtifact=true")
         build(BuildKotlinToolingMetadataTask.defaultTaskName) {
             assertSuccessful()
             assertTasksExecuted(":app:$buildKotlinToolingMetadataTaskName")
@@ -123,8 +121,6 @@ class KotlinToolingMetadataMppIT : BaseGradleIT() {
         if (isKpmModelMappingEnabled) throw AssumptionViolatedException("Pure KPM tests don't need KPM model mapping flag")
 
         with(transformProjectWithPluginsDsl("kpm-multi-module-published")) {
-            projectDir.resolve("gradle.properties").appendText("\nkotlin.mpp.enableKotlinToolingMetadataArtifact=true")
-
             val expectedMetadataByModule = mapOf<String, KotlinToolingMetadata.() -> Unit>(
                 KotlinGradleModule.MAIN_MODULE_NAME to {
                     val nativeTarget = projectTargets.single { it.platformType == KotlinPlatformType.native.name }
