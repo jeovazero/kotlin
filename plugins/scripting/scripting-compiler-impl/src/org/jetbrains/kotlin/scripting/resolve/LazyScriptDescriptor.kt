@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.annotations.FilteredAnnotations
 import org.jetbrains.kotlin.descriptors.impl.ClassConstructorDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.PropertyDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1
 import org.jetbrains.kotlin.diagnostics.Errors
@@ -92,6 +93,32 @@ class LazyScriptDescriptor(
                     this,
                     expression.toSourceElement()
                 )
+            }
+        } else null
+    }
+
+    private val _earlierScriptsProperty: () -> PropertyDescriptor? = resolveSession.storageManager.createNullableLazyValue {
+        if (isReplScript) {
+            val receiver = this.thisAsReceiverParameter
+            object : PropertyDescriptorImpl(
+                this,
+                null,
+                Annotations.EMPTY,
+                Modality.FINAL,
+                DescriptorVisibilities.PRIVATE,
+                false,
+                Name.identifier("\$\$earlierScripts"),
+                CallableMemberDescriptor.Kind.SYNTHESIZED,
+                source,
+                /* lateInit = */ false, /* isConst = */ false, /* isExpect = */ false, /* isActual = */ false, /* isExternal = */ false,
+                /* isDelegated = */ false
+            ) {
+                init {
+                    setType(builtIns.getArrayType(Variance.INVARIANT, builtIns.anyType), emptyList(), receiver, null, emptyList())
+                    initialize(
+                        null, null
+                    )
+                }
             }
         } else null
     }
@@ -355,6 +382,8 @@ class LazyScriptDescriptor(
             scriptProvidedPropertiesParameters = providedPropertiesParameters
         )
     }
+
+    override fun getEarlierScriptsProperty(): PropertyDescriptor? = _earlierScriptsProperty()
 
     override fun getEarlierScriptsConstructorParameter(): ValueParameterDescriptor? =
         scriptPrimaryConstructorWithParams().earlierScriptsParameter

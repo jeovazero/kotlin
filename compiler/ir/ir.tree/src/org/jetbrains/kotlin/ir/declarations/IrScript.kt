@@ -38,6 +38,8 @@ abstract class IrScript :
 
     abstract var earlierScriptsParameter: IrValueParameter?
 
+    abstract var earlierScriptsPropertySymbol: IrPropertySymbol?
+
     abstract var earlierScripts: List<IrScriptSymbol>?
 
     abstract var targetClass: IrClassSymbol?

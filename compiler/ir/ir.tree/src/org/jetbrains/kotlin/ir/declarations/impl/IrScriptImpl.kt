@@ -51,6 +51,7 @@ class IrScriptImpl(
     override lateinit var providedProperties: List<Pair<IrValueParameter, IrPropertySymbol>>
     override var resultProperty: IrPropertySymbol? = null
     override var earlierScriptsParameter: IrValueParameter? = null
+    override var earlierScriptsPropertySymbol: IrPropertySymbol? = null
     override var earlierScripts: List<IrScriptSymbol>? = null
     override var targetClass: IrClassSymbol? = null
     override var constructor: IrConstructor? = null

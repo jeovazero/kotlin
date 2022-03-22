@@ -58,6 +58,7 @@ import org.jetbrains.kotlin.cli.common.*
 import org.jetbrains.kotlin.cli.common.config.ContentRoot
 import org.jetbrains.kotlin.cli.common.config.KotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.kotlinSourceRoots
+import org.jetbrains.kotlin.cli.common.extensions.ReplFactoryExtension
 import org.jetbrains.kotlin.cli.common.extensions.ScriptEvaluationExtension
 import org.jetbrains.kotlin.cli.common.extensions.ShellExtension
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -646,6 +647,7 @@ class KotlinCoreEnvironment private constructor(
             ExtraImportsProviderExtension.registerExtensionPoint(project)
             IrGenerationExtension.registerExtensionPoint(project)
             ScriptEvaluationExtension.registerExtensionPoint(project)
+            ReplFactoryExtension.registerExtensionPoint(project)
             ShellExtension.registerExtensionPoint(project)
             TypeResolutionInterceptor.registerExtensionPoint(project)
             CandidateInterceptor.registerExtensionPoint(project)
