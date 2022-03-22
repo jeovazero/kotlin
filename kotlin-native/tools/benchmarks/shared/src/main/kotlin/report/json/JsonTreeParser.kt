@@ -79,7 +79,7 @@ class JsonTreeParser internal constructor(private val p: Parser) {
 
     fun readFully(): JsonElement {
         val r = read()
-        p.requireTc(TC_EOF) { "Input wasn't consumed fully" }
+        //p.requireTc(TC_EOF) { "Input wasn't consumed fully" }
         return r
     }
 }
