@@ -35,9 +35,6 @@ import org.jetbrains.kotlin.tooling.KotlinToolingMetadata
 import org.jetbrains.kotlin.tooling.toJsonString
 import java.io.File
 
-/**
- * Register
- */
 internal fun Project.registerBuildKotlinToolingMetadataTask() {
     if (!project.kotlinPropertiesProvider.enableKotlinToolingMetadataArtifact) return
 
@@ -89,8 +86,6 @@ internal val KotlinGradleModule.buildKotlinToolingMetadataTask: TaskProvider<Bui
             project.buildKotlinToolingMetadataForAllKpmModulesTask.dependsOn(task)
         }
     }
-
-
 
 abstract class BuildKotlinToolingMetadataTask : DefaultTask() {
 
