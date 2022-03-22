@@ -20,6 +20,7 @@ class JsPropertyAccessorInlineLowering(
         if (!isSafeToInlineInClosedWorld())
             return false
 
+        // Member properties could be safely inlined, because initialization processed via parent declaration
         if (!isTopLevel) return true
 
         // TODO: teach the deserializer to load constant property initializers

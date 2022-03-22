@@ -50,12 +50,12 @@ enum class TranslationMode(
             return if (perModule) {
                 if (dce) {
                     if (minimizedMemberNames) PER_MODULE_DCE_MINIMIZED_NAMES
-                    else PER_MODULE_DCE_MINIMIZED_NAMES
+                    else PER_MODULE_DCE
                 } else PER_MODULE
             } else {
                 if (dce) {
                     if (minimizedMemberNames) FULL_DCE_MINIMIZED_NAMES
-                    else FULL_DCE_MINIMIZED_NAMES
+                    else FULL_DCE
                 } else FULL
             }
         }
